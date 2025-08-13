@@ -1,27 +1,77 @@
-const db = require("../config/db")
+const Product = require("../models/productModel");
+
 const productController = {
+
     getAllProducts: (req, res) => {
-
-    db.query('SELECT * FROM products WHERE is_deleted = 0', (err, results) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json(results);
-
-    });
-        
+        Product.getAll((err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json(results);
+        });        
     },
 
-    getProductById:
+    getProductById: (req, res) => {
+        Product.getById(req.params.id, (err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json(results[0] || {});
+        });        
+    },
 
-    searchProducts:
+    searchProducts: (req, res) => {
+        const { keyword } = req.params;
+        Product.searchByKeyword(keyword, (err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json(results);
+        });        
+    },
 
-    createProduct:
+    createProduct: (req, res) => {
+        const { name, price } = req.body;
 
-    updateProduct:
+        if (!name || price == null) {
+            return res.status(400).json({ error: 'name and price are required' });
+        }
 
-    softDeleteProduct:
+        Product.create(req.body, (err, result) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
 
-    restoreProduct:
+                res.status(201).json({
+                    message: 'Product created'
+                });
+        });
+},
 
-}
+    updateProduct: (req, res) => {
+        const { id } = req.params;
+        Product.update(id, req.body, err => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ message: 'Product updated' });
+        });
+},
+
+    softDeleteProduct: (req, res) => {
+        const { id } = req.params;
+        Product.softDelete(id, err => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ message: 'Product soft-deleted' });
+        });
+},
+
+    restoreProduct: (req, res) => {
+        const { id } = req.params;
+        Product.restore(id, err => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ message: 'Product restored' });
+        });
+},
+
+    getProductView: (req, res) => {
+        Product.getAll((err, results) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.render('products', { product: results });
+        });
+    }
+};
+
+module.exports = productController;

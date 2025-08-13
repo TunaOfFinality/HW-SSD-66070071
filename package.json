@@ -8,11 +8,23 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
     "express": "^5.1.0",
     "mysql2": "^3.14.3",
-    "nodemon": "^3.1.10"
-  }
+    "nodemon": "^3.1.10",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^11.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TunaOfFinality/HW-SSD-66070071.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TunaOfFinality/HW-SSD-66070071/issues"
+  },
+  "homepage": "https://github.com/TunaOfFinality/HW-SSD-66070071#readme",
+  "description": ""
 }

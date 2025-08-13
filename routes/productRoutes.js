@@ -1,125 +1,177 @@
-const express = require("express")
-const router = express.Router()
-const db = require("../config/db")
+const express = require("express");
+const router = express.Router();
+
+const db = require('../config/db');
+const productController = require("../controllers/productController");
+
+/**
+ * @swagger
+ * tags:
+ *   name: Products
+ *   description: Product management endpoints
+ */
+
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Get all products
+ *     tags: [Products]
+ *     responses:
+ *       200:
+ *         description: A list of all products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ */
 
 // Get all products
+router.get('/products', productController.getAllProducts);
 
-router.get('/products', (req, res) => {
-
-    db.query('SELECT * FROM products WHERE is_deleted = 0', (err, results) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json(results);
-
-    });
-
-});
-
-
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Get a product by ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the product
+ *     responses:
+ *       200:
+ *         description: The product details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               @ref: '#/components/schemas/Product'
+ *       404:
+ *         description: Product not found
+ */
 
 // Get product by ID
+router.get('/products/:id', productController.getProductById);
 
-router.get('/products/:id', (req, res) => {
-
-    db.query('SELECT * FROM products WHERE id = ? AND is_deleted = 0', [req.params.id], (err, results) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json(results[0] || {});
-
-    });
-
-});
-
-
+/**
+ * @swagger
+ * /api/products/search/{keyword}:
+ *   get:
+ *     summary: Search products by keyword
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: keyword
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The keyword to search for
+ *     responses:
+ *       200:
+ *         description: A list of matched products
+ */
 
 // Search product by keyword
+router.get('/products/search/:keyword', productController.searchProducts);
 
-router.get('/products/search/:keyword', (req, res) => {
-
-    const keyword = `%${req.params.keyword}%`;
-
-    db.query('SELECT * FROM products WHERE name LIKE ? AND is_deleted = 0', [keyword], (err, results) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json(results);
-
-    });
-
-});
-
-
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Create a new product
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductInput'
+ *     responses:
+ *       201:
+ *         description: Product created successfully
+ */
 
 // Create product
+router.post('/products', productController.createProduct);
 
-router.post('/products', (req, res) => {
-
-    const { name, price, discount, review_count, image_url } = req.body;
-
-    const query = 'INSERT INTO products (name, price, discount, review_count, image_url) VALUES (?, ?, ?, ?, ?)';
-
-    db.query(query, [name, price, discount, review_count, image_url], (err, result) => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.status(201).json({ id: result.insertId, message: 'Product created' });
-
-    });
-
-});
-
-
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   put:
+ *     summary: Update a product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductInput'
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *       404:
+ *         description: Product not found
+ */
 
 // Update product
+router.put('/products/:id', productController.updateProduct);
 
-router.put('/products/:id', (req, res) => {
-
-    const { name, price, discount, review_count, image_url } = req.body;
-
-    const query = 'UPDATE products SET name = ?, price = ?, discount = ?, review_count = ?, image_url = ? WHERE id = ?';
-
-    db.query(query, [name, price, discount, review_count, image_url, req.params.id], err => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json({ message: 'Product updated' });
-
-    });
-
-});
-
-
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Soft delete a product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the product to delete
+ *     responses:
+ *       200:
+ *         description: Product soft-deleted successfully
+ *       404:
+ *         description: Product not found
+ */
 
 // Soft delete product
+router.delete('/products/:id', productController.softDeleteProduct);
 
-router.delete('/products/:id', (req, res) => {
-
-    db.query('UPDATE products SET is_deleted = 1 WHERE id = ?', [req.params.id], err => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json({ message: 'Product soft-deleted' });
-
-    });
-
-});
-
-
+/**
+ * @swagger
+ * /api/products/restore/{id}:
+ *   put:
+ *     summary: Restore a soft-deleted product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the product to restore
+ *     responses:
+ *       200:
+ *         description: Product restored successfully
+ *       404:
+ *         description: Product not found or not deleted
+ */
 
 // Restore product
-
-router.put('/products/restore/:id', (req, res) => {
-
-    db.query('UPDATE products SET is_deleted = 0 WHERE id = ?', [req.params.id], err => {
-
-        if (err) return res.status(500).json({ error: err.message });
-
-        res.json({ message: 'Product restored' });
-
-    });
-
-});
+router.put('/products/restore/:id', productController.restoreProduct);
 
 module.exports = router
